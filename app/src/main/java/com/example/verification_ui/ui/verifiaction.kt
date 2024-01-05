@@ -25,22 +25,27 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.verification_ui.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Verification() {
 
@@ -66,10 +71,30 @@ fun Verification() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        VerificationCodeTextField(
-            code = "",
-            onCodeChange = {}
-        )
+        var verificationCode by remember { mutableStateOf(listOf("", "", "", "")) }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            for (i in 0 until 4) {
+                TextField(
+                    value = verificationCode.getOrNull(i) ?: "",
+                    onValueChange = {
+                        newValue -> verificationCode = updateList(verificationCode, i, newValue) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = if (i == 3) ImeAction.Done else ImeAction.Next
+                    ),
+                    singleLine = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                        .background(MaterialTheme.colorScheme.background),
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -111,6 +136,10 @@ fun Verification() {
         ) {
             Text(text = "Verify")
         }
+
+        Spacer(modifier = Modifier.height(80.dp))
+
+        NumericKeyboard(onKeyPress = {})
     }
 }
 
@@ -132,7 +161,15 @@ fun TopBar() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun updateList(list: List<String>, index: Int, value: String): List<String> {
+    return list.toMutableList().also { it[index] = value }
+}
+
+@Composable
+private fun getNextEmptyIndex(list: List<String>): Int {
+    return list.indexOfFirst { it.isEmpty() }.takeIf { it != -1 } ?: (list.size - 1)
+}
+
 @Composable
 fun VerificationCodeTextField(
     code: String,
@@ -141,14 +178,23 @@ fun VerificationCodeTextField(
     // Use a Row to arrange the 4 text fields horizontally
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly
-//        modifier = Modifier.padding(start = 16.dp)
     ) {
         repeat(4) { index ->
+            val textFieldValue = remember { mutableStateOf(code.getOrElse(index) { ' ' }.toString()) }
+
+            LaunchedEffect(code) {
+                textFieldValue.value = code.getOrElse(index) { ' ' }.toString()
+            }
+
             TextField(
-                value = code.getOrElse(index) { ' ' }.toString(),
+                value = textFieldValue.value,
                 onValueChange = {
                     if (it.length <= 1) { // Limit to single digit
-                        onCodeChange(code.replaceRange(index, index + 1, it))
+                        if (index < code.length) {
+                            onCodeChange(code.replaceRange(index, index + 1, it))
+                        } else {
+                            onCodeChange(code + it)
+                        }
                     }
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
@@ -159,7 +205,7 @@ fun VerificationCodeTextField(
                     .padding(8.dp)
                     .background(color = Color.Transparent),
                 shape = RoundedCornerShape(15.dp),
-                colors = TextFieldDefaults.textFieldColors(
+                colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.Blue,
                     cursorColor = Color.White,
                     focusedIndicatorColor = Color.Transparent,
@@ -167,6 +213,80 @@ fun VerificationCodeTextField(
                     disabledIndicatorColor = Color.Transparent,
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun NumericKeyboard(onKeyPress: (Char) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(onClick = { onKeyPress('1') }) {
+                Text("1")
+            }
+            Button(onClick = { onKeyPress('2') }) {
+                Text("2")
+            }
+            Button(onClick = { onKeyPress('3') }) {
+                Text("3")
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(onClick = { onKeyPress('4') }) {
+                Text("4")
+            }
+            Button(onClick = { onKeyPress('5') }) {
+                Text("5")
+            }
+            Button(onClick = { onKeyPress('6') }) {
+                Text("6")
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(onClick = { onKeyPress('7') }) {
+                Text("7")
+            }
+            Button(onClick = { onKeyPress('8') }) {
+                Text("8")
+            }
+            Button(onClick = { onKeyPress('9') }) {
+                Text("9")
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+            Button(onClick = { onKeyPress('0') }) {
+                Text("0")
+            }
+            Button(
+                onClick = {}, // Handle backspace functionality here
+//                modifier = Modifier.weight(1f),
+                enabled = false // Disable until implemented
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.outline_backspace_24),
+                    contentDescription = "Backspace"
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
