@@ -98,6 +98,24 @@ fun Verification() {
 
         Spacer(modifier = Modifier.height(30.dp))
 
+        Button(
+            onClick = { /*TODO*/ },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .shadow(5.dp)
+        ) {
+            Text(text = "Verify")
+        }
+
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         val text = "Haven't received the code? "
         val clickableText = " Resend it"
 
@@ -119,27 +137,9 @@ fun Verification() {
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+//        Spacer(modifier = Modifier.height(80.dp))
 
-
-        Button(
-            onClick = { /*TODO*/ },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(15.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .shadow(5.dp)
-        ) {
-            Text(text = "Verify")
-        }
-
-        Spacer(modifier = Modifier.height(80.dp))
-
-        NumericKeyboard(onKeyPress = {})
+//        NumericKeyboard(onKeyPress = {})
     }
 }
 
