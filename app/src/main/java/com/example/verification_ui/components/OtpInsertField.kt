@@ -31,28 +31,6 @@ import com.example.verification_ui.ui.theme.BorderDark
 import com.example.verification_ui.ui.theme.BorderLight
 import kotlinx.coroutines.delay
 
-/**
- * A composable function for creating an OTP input field.
- *
- * This OTP input field allows for the entry of a One Time Password (OTP) with a configurable number of characters.
- * It supports automatic population of OTP from different sources (e.g., server).
- *
- * @param modifier Modifier for styling and layout of the input field.
- * @param otpText The current text of the OTP input field.
- * @param otpLength The length of the OTP. Default is 6 characters.
- * @param shouldShowCursor Boolean flag to indicate if the cursor should be shown.
- * @param shouldCursorBlink Boolean flag to indicate if the cursor should blink.
- * @param onOtpModified Lambda function that is triggered when the OTP text changes.
- *        It provides the updated text and a flag indicating if the OTP is complete.
- * @throws IllegalArgumentException if the initial otpText length is greater than otpLength.
- *
- * Usage example:
- * OtpInputField(
- *     otpText = viewModel.otpText,
- *     otpLength = 6,
- *     onOtpTextChange = { otp, isComplete -> /* handle OTP change */ }
- * )
- */
 @Composable
 fun OtpInputField(
     modifier: Modifier = Modifier,
@@ -95,18 +73,6 @@ fun OtpInputField(
     )
 }
 
-/**
- * An internal composable function used within [OtpInputField] to render individual character containers.
- *
- * Each character container displays a single character of the OTP and manages cursor visibility and blinking.
- *
- * @param index The position of this character in the OTP.
- * @param text The current text of the OTP input field.
- * @param shouldShowCursor Boolean flag to indicate if the cursor should be shown for this container.
- * @param shouldCursorBlink Boolean flag to indicate if the cursor should blink when shown.
- *
- * Note: This function cannot be used outside the context of [OtpInputField] as it is tailored to its specific use-case.
- */
 @Composable
 internal fun CharacterContainer(
     index: Int,
