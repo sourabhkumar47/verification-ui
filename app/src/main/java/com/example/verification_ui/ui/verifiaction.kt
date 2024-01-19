@@ -1,29 +1,39 @@
 package com.example.verification_ui.ui
 
+import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,9 +41,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -41,181 +60,312 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.verification_ui.R
+import com.example.verification_ui.components.OtpInputField
+import com.example.verification_ui.ui.theme.TextColor
 
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Verification() {
 
-    Column(modifier = Modifier.padding(16.dp))
-    {
-        TopBar()
+    val context = LocalContext.current
+    var otpValue by remember { mutableStateOf("") }
+    var isOtpFilled by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-        Spacer(modifier = Modifier.height(30.dp))
+//    (LocalView.current.context as Activity).window.statusBarColor = Color.White.toArgb()
 
-        Text(
-            text = stringResource(id = R.string.Verification),
-            modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.headlineLarge
-        )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(id = R.string.ver_message),
-            modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.labelLarge
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        var verificationCode by remember { mutableStateOf(listOf("", "", "", "")) }
-
-        Row(
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = { }) {
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    actionIconContentColor = Color.Black
+                )
+            )
+        }
+    ) { innerPadding ->
+        Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            color = Color.White
         ) {
-            for (i in 0 until 4) {
-                TextField(
-                    value = verificationCode.getOrNull(i) ?: "",
-                    onValueChange = {
-                        newValue -> verificationCode = updateList(verificationCode, i, newValue) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = if (i == 3) ImeAction.Done else ImeAction.Next
-                    ),
-                    singleLine = true,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(innerPadding)
+            ) {
+                Text(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                        .background(MaterialTheme.colorScheme.background),
+                        .fillMaxWidth(),
+                    text = stringResource(id = R.string.Verification),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontSize = 40.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = TextColor
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+//
+                Text(
+                    text = stringResource(id = R.string.ver_message),
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = TextColor
+                )
+
+                //Otp input field
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(24.dp),
+                    color = Color.White
+                ) {
+                    OtpInputField(
+                        modifier = Modifier
+                            .padding(top = 48.dp)
+                            .focusRequester(focusRequester),
+                        otpText = otpValue,
+                        shouldCursorBlink = false,
+                        onOtpModified = { value, otpFilled ->
+                            otpValue = value
+                            isOtpFilled = otpFilled
+                            if (otpFilled) {
+                                keyboardController?.hide()
+                            }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Button(
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        contentColor = Color.White
+                    ),
+//                    shape = RoundedCornerShape(15.dp),
+                    shape = RoundedCornerShape(topEnd = 15.dp, bottomStart = 15.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+//                        .shadow(5.dp)
+                        .padding(start = 16.dp, end = 16.dp)
+                ) {
+                    Text(text = "Verify")
+                }
+
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                val text = "Haven't received the code? "
+                val clickableText = " Resend it"
+
+                val annotatedString = remember {
+                    AnnotatedString.Builder(text).apply {
+                        pushStyle(SpanStyle(color = Color.Red))
+                        append(clickableText)
+                        pop()
+                    }
+                }
+
+                ClickableText(
+                    text = annotatedString.toAnnotatedString(),
+                    onClick = { offset ->
+                        if (offset >= text.length) {
+                            // Handle click on "clickableText"
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
         }
+    }
 
-        Spacer(modifier = Modifier.height(30.dp))
+}
+//    Column(modifier = Modifier.padding(16.dp))
+//    {
+//        TopBar()
+//
+//        Spacer(modifier = Modifier.height(30.dp))
+//
+//        Text(
+//            text = stringResource(id = R.string.Verification),
+//            modifier = Modifier.fillMaxWidth(),
+//            style = MaterialTheme.typography.headlineLarge
+//        )
+//
+//        Spacer(modifier = Modifier.height(20.dp))
+//
+//        Text(
+//            text = stringResource(id = R.string.ver_message),
+//            modifier = Modifier.fillMaxWidth(),
+//            style = MaterialTheme.typography.labelLarge
+//        )
+//
+//        Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = { /*TODO*/ },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(15.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .shadow(5.dp)
-        ) {
-            Text(text = "Verify")
-        }
+//        var verificationCode by remember { mutableStateOf(listOf("", "", "", "")) }
+//
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(bottom = 16.dp)
+//        ) {
+//
+//            for (i in 0 until 4) {
+//                TextField(
+//                    value = verificationCode.getOrNull(i) ?: "",
+//                    onValueChange = { newValue ->
+//                        verificationCode = updateList(verificationCode, i, newValue)
+//                    },
+//                    keyboardOptions = KeyboardOptions(
+//                        keyboardType = KeyboardType.Number,
+//                        imeAction = if (i == 3) ImeAction.Done else ImeAction.Next
+//                    ),
+//                    singleLine = true,
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .padding(end = 8.dp)
+//                        .background(MaterialTheme.colorScheme.background),
+//                )
+//            }
+//        }
 
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        val text = "Haven't received the code? "
-        val clickableText = " Resend it"
-
-        val annotatedString = remember {
-            AnnotatedString.Builder(text).apply {
-                pushStyle(SpanStyle(color = Color.Red))
-                append(clickableText)
-                pop()
-            }
-        }
-
-        ClickableText(
-            text = annotatedString.toAnnotatedString(),
-            onClick = { offset ->
-                if (offset >= text.length) {
-                    // Handle click on "clickableText"
-                }
-            },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+//        Spacer(modifier = Modifier.height(30.dp))
+//
+//        Button(
+//            onClick = { /*TODO*/ },
+//            colors = ButtonDefaults.buttonColors(
+//                containerColor = Color.Red,
+//                contentColor = Color.White
+//            ),
+//            shape = RoundedCornerShape(15.dp),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(50.dp)
+//                .shadow(5.dp)
+//        ) {
+//            Text(text = "Verify")
+//        }
+//
+//
+//        Spacer(modifier = Modifier.height(10.dp))
+//
+//        val text = "Haven't received the code? "
+//        val clickableText = " Resend it"
+//
+//        val annotatedString = remember {
+//            AnnotatedString.Builder(text).apply {
+//                pushStyle(SpanStyle(color = Color.Red))
+//                append(clickableText)
+//                pop()
+//            }
+//        }
+//
+//        ClickableText(
+//            text = annotatedString.toAnnotatedString(),
+//            onClick = { offset ->
+//                if (offset >= text.length) {
+//                    // Handle click on "clickableText"
+//                }
+//            },
+//            modifier = Modifier.align(Alignment.CenterHorizontally)
+//        )
 
 //        Spacer(modifier = Modifier.height(80.dp))
 
 //        NumericKeyboard(onKeyPress = {})
-    }
-}
+//    }
+//}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopBar() {
-    TopAppBar(
-        title = {
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TopBar() {
+//    TopAppBar(
+//        title = {
 //                Text(text = "verification")
-        },
-        navigationIcon = {
-            IconButton(onClick = { }) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = null
-                )
-            }
-        }
-    )
-}
+//        },
+//        navigationIcon = {
+//            IconButton(onClick = { }) {
+//                Icon(
+//                    Icons.Filled.ArrowBack,
+//                    contentDescription = null
+//                )
+//            }
+//        }
+//    )
+//}
 
-private fun updateList(list: List<String>, index: Int, value: String): List<String> {
-    return list.toMutableList().also { it[index] = value }
-}
+//Text filed to insert numerical
 
-@Composable
-private fun getNextEmptyIndex(list: List<String>): Int {
-    return list.indexOfFirst { it.isEmpty() }.takeIf { it != -1 } ?: (list.size - 1)
-}
+//@Composable
+//fun VerificationCodeTextField(
+//    code: String,
+//    onCodeChange: (String) -> Unit,
+//    onNextField: () -> Unit
+//) {
+//    val focusManager = LocalFocusManager.current
+//    val focusRequester = remember { FocusRequester() }
+//
+//    Row {
+//        repeat(4) { index ->
+//            TextField(
+//                value = code.getOrElse(index) { ' ' }.toString(), // Handle empty digits
+//                onValueChange = {
+//                    if (it.length <= 1) { // Limit to single digit
+//                        onCodeChange(code.replaceRange(index, index + 1, it))
+//                        if (it.isNotEmpty()) {
+//                            onNextField() // Move to next field if a digit is entered
+//                        }
+//                    }
+//                },
+//                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+//                singleLine = true,
+//                textStyle = TextStyle(fontSize = 24.sp),
+//                modifier = Modifier
+//                    .width(56.dp)
+//                    .padding(8.dp)
+//                    .border(1.dp, Color.LightGray, shape = RoundedCornerShape(4.dp))
+//                    .then(if (index == 0) Modifier.focusRequester(focusRequester) else Modifier) // Apply focusRequester to the first TextField
+//                    .then(if (index == 0) Modifier.focusable() else Modifier),
+//                keyboardActions = KeyboardActions(
+//                    onNext = {
+//                        onNextField() // Move to next field on "next" button press
+//                    },
+//                    onDone = {
+//                        // Perform actions when done (e.g., hide keyboard, verify code)
+//                        focusManager.clearFocus() // Hide keyboard when all fields are filled
+//                    }
+//                )
+//            )
+//        }
+//    }
+//}
 
-@Composable
-fun VerificationCodeTextField(
-    code: String,
-    onCodeChange: (String) -> Unit
-) {
-    // Use a Row to arrange the 4 text fields horizontally
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        repeat(4) { index ->
-            val textFieldValue = remember { mutableStateOf(code.getOrElse(index) { ' ' }.toString()) }
-
-            LaunchedEffect(code) {
-                textFieldValue.value = code.getOrElse(index) { ' ' }.toString()
-            }
-
-            TextField(
-                value = textFieldValue.value,
-                onValueChange = {
-                    if (it.length <= 1) { // Limit to single digit
-                        if (index < code.length) {
-                            onCodeChange(code.replaceRange(index, index + 1, it))
-                        } else {
-                            onCodeChange(code + it)
-                        }
-                    }
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 24.sp),
-                modifier = Modifier
-                    .width(86.dp)
-                    .padding(8.dp)
-                    .background(color = Color.Transparent),
-                shape = RoundedCornerShape(15.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Blue,
-                    cursorColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                )
-            )
-        }
-    }
-}
 
 @Composable
 fun NumericKeyboard(onKeyPress: (Char) -> Unit) {
@@ -225,7 +375,7 @@ fun NumericKeyboard(onKeyPress: (Char) -> Unit) {
             .padding(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
 
-    ) {
+        ) {
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
